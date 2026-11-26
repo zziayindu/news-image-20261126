@@ -1,32 +1,33 @@
 #!/usr/bin/env python3
-"""Sum up 26 November 2026 world news in one image.
+"""Hand the finished 26 November front page to the judging harness.
 
-Pure standard library: copies the pre-rendered entry.png that this
-repository holds (1024x1024 PNG, under 1 MiB, drawn in-session with
-flat vector scenes) to the grader's output path. No network access,
-no third-party packages, and the copied bytes are identical on
-every run.
+The picture itself was composed beforehand and lives in this repo as
+entry.png. All this program does is place a copy of it where the harness
+looks for the result, so the run needs nothing beyond the standard
+library.
 """
+
 import os
-import shutil
+import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-SRC = HERE / "entry.png"
 
-
-def output_path():
-    if os.environ.get("OUTPUT_PATH"):
-        return Path(os.environ["OUTPUT_PATH"])
-    base = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    return Path(base) / "entry.png"
+def destination():
+    """Return the full path the harness will read the image from."""
+    folder = os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output"
+    name = os.environ.get("OUTPUT_PATH") or "entry.png"
+    return Path(folder) / name
 
 
 def main():
-    out = output_path()
-    out.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(SRC, out)
+    picture = Path(__file__).resolve().parent / "entry.png"
+    target = destination()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    blob = picture.read_bytes()
+    target.write_bytes(blob)
+    print("delivered", target, "bytes:", len(blob))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
