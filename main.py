@@ -19,11 +19,20 @@ def destination():
     return Path(folder) / name
 
 
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+
+
 def main():
     picture = Path(__file__).resolve().parent / "entry.png"
+    if not picture.is_file():
+        print("missing entry.png:", picture, file=sys.stderr)
+        return 1
+    blob = picture.read_bytes()
+    if blob[:8] != PNG_MAGIC:
+        print("entry.png is not a valid PNG file", file=sys.stderr)
+        return 1
     target = destination()
     target.parent.mkdir(parents=True, exist_ok=True)
-    blob = picture.read_bytes()
     target.write_bytes(blob)
     print("delivered", target, "bytes:", len(blob))
     return 0
